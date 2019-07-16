@@ -1,4 +1,4 @@
-myenv/
+my_env/
 .cache/
 __pycache__/
 *.egg*
