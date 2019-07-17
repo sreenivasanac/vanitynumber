@@ -1,14 +1,14 @@
 import os
-from typing import List
-import re # regular expressions
 
 import pygtrie as trie
 # https://github.com/google/pygtrie
 
-from collections import deque # For Queue
-import heapq_max # For Priority Queue - Max Heap
-from . import helper
+from typing import List
 
+from collections import deque # For Queue
+import heapq_max # For Priority Queue - Max Heap, https://pypi.org/project/heapq_max/
+
+from . import helper
 
 MAX_WORD_LENGTH_DICTIONARY = 7
 MAX_NUMBER_DIGITS_WORDIFY = 7
@@ -16,16 +16,12 @@ MAX_NUMBER_DIGITS_WORDIFY = 7
 is_dictionary_trie_populated = False
 dictionary_trie = None
 
-US_PHONE_NUMBER_REGEX = '(1?)-?([0-9]{3})-?([0-9]{3})-?([0-9]{4})$'
-# Four control groups in the above Regex which we would be matching
-
-
 def populate_dictionary_trie():
     global is_dictionary_trie_populated
     global dictionary_trie
 
     if is_dictionary_trie_populated == True and dictionary_trie is not None:
-        # To avoid re-populating the Trie if it has already been created in Memory
+        # To avoid re-populating the Trie if it has already been created and populated inMemory
         return dictionary_trie
 
     # Trie datastructure for storing dictionary words and fast retrieval
@@ -53,28 +49,33 @@ class T9_Graph_Node(object):
     # If both nodes contain same number of characters in the word, then compare max number of continous characters between them
     def __le__(self, other):
         return (self.number_of_chars_in_word > other.number_of_chars_in_word) or \
-            ((self.number_of_chars_in_word == other.number_of_chars_in_word) and (self.max_number_of_continous_chars_in_word > other.max_number_of_continous_chars_in_word))
+            ((self.number_of_chars_in_word == other.number_of_chars_in_word) and \
+                (self.max_number_of_continous_chars_in_word > other.max_number_of_continous_chars_in_word))
 
     def __eq__(self, other):
-        return (self.number_of_chars_in_word == other.number_of_chars_in_word) and (self.max_number_of_continous_chars_in_word == other.max_number_of_continous_chars_in_word)
+        return (self.number_of_chars_in_word == other.number_of_chars_in_word) and \
+            (self.max_number_of_continous_chars_in_word == other.max_number_of_continous_chars_in_word)
 
     def __gt__(self, other):
         return self.number_of_chars_in_word < other.number_of_chars_in_word or \
-            ((self.number_of_chars_in_word == other.number_of_chars_in_word) and (self.max_number_of_continous_chars_in_word < other.max_number_of_continous_chars_in_word))
+            ((self.number_of_chars_in_word == other.number_of_chars_in_word) and \
+                (self.max_number_of_continous_chars_in_word < other.max_number_of_continous_chars_in_word))
 
-def find_words_from_numbers(number: str, digit_to_chars_list_map, number_results_to_output):
+def find_words_from_numbers(number: str, max_number_results_to_output):
     # Input "7246874"
     # Output wordified String "PAINTER"
     number_of_digits = len(number)
-
+    if "-" in number:
+        import pdb; pdb.set_trace()
     global dictionary_trie
+
+    digit_to_chars_list_map = helper.get_digit_to_chars_list_mapping()
 
     # Performing Breadth-first Search
     queue = deque([])
     queue.append(T9_Graph_Node(number, 0, 0, 0))
 
-    words_from_numbers_pq = heapq_max.heapify_max([])
-
+    # Create an empty Max Heap
     words_from_numbers_pq = []
 
     while(queue):
@@ -87,7 +88,7 @@ def find_words_from_numbers(number: str, digit_to_chars_list_map, number_results
             heapq_max.heappush_max(words_from_numbers_pq, curr_wordified_node)
 
             # Have only N elements in Priority Queue / Heap, and Remove other elements
-            while len(words_from_numbers_pq) > number_results_to_output:
+            while len(words_from_numbers_pq) > max_number_results_to_output:
                 heapq_max.heappop_max(words_from_numbers_pq)
             continue
 
@@ -106,7 +107,7 @@ def find_words_from_numbers(number: str, digit_to_chars_list_map, number_results
              # only then we replace the next index of a running word to a digit
             if ((char.isdigit() and (len_char_prefix == 0 or dictionary_trie.has_key(char_prefix))) or
                 (char.isalpha() and (dictionary_trie.has_subtrie(char_prefix+char) or dictionary_trie.has_key(char_prefix+char)))):
-                # Or if the current letter is a character and the prefix so far is present in the Trie, we replace the next index with a character
+                # Or if the current letter is a character, then the prefix so far should be present in the Trie, only then we search one level down
 
                 # Only if the prefix exists in the Trie are we going deeper in the Search
                 # If there does NOT exist ANY word with the prefix so far
@@ -122,15 +123,15 @@ def find_words_from_numbers(number: str, digit_to_chars_list_map, number_results
     # Returning the maximum T9_Graph_Node having most number of contigous letters, defined as the comparator function
     if len(words_from_numbers_pq) > 0:
         words_from_numbers_output = []
-        for i in range(number_results_to_output):
+        for i in range(max_number_results_to_output):
             words_from_numbers_output.append(heapq_max.heappop_max(words_from_numbers_pq).wordified_so_far)
 
-        if number_results_to_output == 1:
+        if max_number_results_to_output == 1:
             return words_from_numbers_output[0]
         else:
-            return words_from_numbers_output
+            return words_from_numbers_output[:max_number_results_to_output]
     else:
-        return number
+        return []
 
 
 def number_to_words(phone_number: str) -> str:
@@ -152,20 +153,15 @@ def number_to_words(phone_number: str) -> str:
     """
     global dictionary_trie
     populate_dictionary_trie()
-    digit_to_chars_list_map = helper.get_digit_to_chars_list_mapping()
 
-    assert type(phone_number) is str
-    assert(len(phone_number) >= 2 and len(phone_number) <= 14)
-
-    pattern = re.compile(US_PHONE_NUMBER_REGEX)
-    match = pattern.match(phone_number)
-    assert(match)
+    is_valid_phone_number = helper.validate_phone_number_basic(phone_number)
+    match = helper.validate_phone_number_regex(phone_number, "US")
 
     # Take only the last MAX_NUMBER_DIGITS_WORDIFY digits
     initial_digits = match.group(1) + "-" + match.group(2)
     trailing_digits = match.group(3) + match.group(4)
 
-    wordified = find_words_from_numbers(trailing_digits, digit_to_chars_list_map, 1)
+    wordified = find_words_from_numbers(trailing_digits, 1)
 
     wordified_phone_number = initial_digits + "-" + wordified
     # Output = "1-800" + "-" + "PAINTER"
@@ -186,14 +182,12 @@ def words_to_number(wordified_number: str) -> str:
                     e.g. "1-800-724-6837"
     """
 
-    VANITY_PHONE_NUMBER_REGEX = '(1?)-?([0-9]{3})-?([\w-]*)$'
+
 
     assert type(wordified_number) is str
     assert(len(wordified_number) >= 2 and len(wordified_number) <= 14)
 
-    pattern = re.compile(VANITY_PHONE_NUMBER_REGEX)
-    match = pattern.match(wordified_number)
-    assert(match)
+    match = helper.validate_wordified_number_regex(wordified_number, "US")
 
     # wordified is present in in the Third Pattern Match Group, the last Seven letters
     # For example "PAINTER" in "1-800-PAINTER"
@@ -227,6 +221,19 @@ def all_wordifications(phone_number: str) -> List[str]:
     """
     global dictionary_trie
     populate_dictionary_trie()
-    find_words_from_numbers(number, digit_to_chars_list_map, number_results_to_output=10)
 
-    return []
+    is_valid_phone_number = helper.validate_phone_number_basic(phone_number)
+    match = helper.validate_phone_number_regex(phone_number, "US")
+
+    # Take only the last MAX_NUMBER_DIGITS_WORDIFY digits
+    initial_digits = match.group(1) + "-" + match.group(2)
+    trailing_digits = match.group(3) + match.group(4)
+
+    wordifications = []
+    wordifications = find_words_from_numbers(trailing_digits, max_number_results_to_output=100)
+
+    for i, _ in enumerate(wordifications):
+        wordifications[i] = helper.add_hyphen_notation(wordifications[i])
+        wordifications[i] = initial_digits + "-" + wordifications[i]
+    # Output = "1-800" + "-" + "PAINTER"
+    return wordifications

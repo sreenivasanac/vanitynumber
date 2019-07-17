@@ -1,6 +1,18 @@
 import os, sys
 
+import re # regular expressions
+
 # Helper functions for wordify.py
+PHONE_NUMBER_REGEX = {}
+PHONE_NUMBER_REGEX["US"] = '(1?)-?([0-9]{3})-?([0-9]{3})-?([0-9]{4})$'
+# Example matching number "1-800-724-6837"
+# Four control groups in the above Regex which we would be matching
+
+
+VANITY_PHONE_NUMBER_REGEX = {}
+VANITY_PHONE_NUMBER_REGEX["US"] = '(1?)-?([0-9]{3})-?([a-zA-Z0-9]{7,8})$'
+# Example matching wordified_number "1-800-PAINTER"
+
 
 def get_script_path():
     return os.path.dirname(os.path.realpath(__file__))
@@ -35,6 +47,7 @@ def get_digit_to_chars_list_mapping():
     # as Typed in T9 Mobile dictionary https://en.wikipedia.org/wiki/T9_(predictive_text)
     # {"2" => ['A', 'B', 'C'], "3" => ['D', 'E', 'F'], ......}
     digit_to_chars_list_map = {
+        "1":"",
         "2":"ABC",
         "3":"DEF",
         "4":"GHI",
@@ -42,13 +55,32 @@ def get_digit_to_chars_list_mapping():
         "6":"MNO",
         "7":"PQRS",
         "8":"TUV",
-        "9":"WXYZ"
+        "9":"WXYZ",
+        "0":"",
     }
     for digit, chars_map in digit_to_chars_list_map.items():
         digit_to_chars_list_map[digit] = list(chars_map)
 
     return digit_to_chars_list_map
 
+def validate_phone_number_regex(phone_number, country_code):
+    global PHONE_NUMBER_REGEX
+    pattern = re.compile(PHONE_NUMBER_REGEX[country_code])
+    match = pattern.match(phone_number)
+    assert(match)
+    return match
+
+def validate_wordified_number_regex(wordified_number, country_code):
+    global VANITY_PHONE_NUMBER_REGEX
+    pattern = re.compile(VANITY_PHONE_NUMBER_REGEX[country_code])
+    match = pattern.match(wordified_number)
+    assert(match)
+    return match
+
+def validate_phone_number_basic(phone_number):
+    assert type(phone_number) is str
+    assert(len(phone_number) >= 2 and len(phone_number) <= 14)
+    return True
 
 def get_char_to_digit_mapping():
     # Returns corresponding digit for each character when typed in a phone
@@ -63,3 +95,13 @@ def get_char_to_digit_mapping():
             char_to_digit_mapping[char] = digit
 
     return char_to_digit_mapping
+
+def add_hyphen_notation(number):
+    # Args: Trailing number, usually of 7 digits
+    # Returns: hyphen added 4 digits from the last
+    if number and "-" not in number:
+        # list(number) does Not work for some reason!
+        number_ = [digit for digit in number]
+        number_.insert(-4, "-")
+        number = "".join(number_)
+    return number
