@@ -1,13 +1,13 @@
-import os, sys
+import os
 from typing import List
-
 import re
 
 import pygtrie as trie
 # https://github.com/google/pygtrie
 
-
 from collections import deque
+from . import helper
+
 
 MAX_WORD_LENGTH_DICTIONARY = 7
 MAX_NUMBER_DIGITS_WORDIFY = 7
@@ -17,9 +17,6 @@ dictionary_trie = None
 
 # US_PHONE_NUMBER_REGEX = '1?-?[0-9]{3}-?[0-9]{3}-?[0-9]{4}$'
 US_PHONE_NUMBER_REGEX = '(1?)-?([0-9]{3})-?([0-9]{3})-?([0-9]{4})$'
-
-def get_script_path():
-    return os.path.dirname(os.path.realpath(__file__))
 
 
 def get_digit_to_chars_list_mapping():
@@ -67,7 +64,7 @@ def populate_dictionary_trie():
     dictionary_trie = trie.Trie()
 
     # https://stackoverflow.com/a/6475407/3766839
-    with open(os.path.join(get_script_path(), "dictionary.txt"), "r") as file:
+    with open(os.path.join(helper.get_script_path(), "dictionary.txt"), "r") as file:
         for word in file:
             word = str(word.upper()).rstrip() # stripping trailing newline characters, and making uppercase
             if len(word) <= MAX_WORD_LENGTH_DICTIONARY:
@@ -75,9 +72,6 @@ def populate_dictionary_trie():
 
     is_dictionary_trie_populated = True
     return dictionary_trie
-
-def replace_string_with_char_at_index(str, index, char):
-    return str[:index] + char + str[index + 1:]
 
 class Node(object):
     def __init__(self, wordified_so_far, index_so_far, number_of_chars_in_word):
@@ -119,7 +113,7 @@ def find_words_from_numbers(number: str, dictionary_trie, digit_to_chars_list_ma
         curr_number_of_chars_in_word = curr_wordified_node.number_of_chars_in_word
 
         for char in digit_to_chars_list_map[curr_digit]:
-            next_wordified_node = replace_string_with_char_at_index(curr_wordified, curr_index, char)
+            next_wordified_node = helper.replace_string_with_char_at_index(curr_wordified, curr_index, char)
             # Only if the prefix exists in the Trie are we going deeper in the Search
             # If there does NOT exist ANY word with the prefix so far
             # the search will NOT go to the next level.
@@ -182,7 +176,33 @@ def words_to_number(wordified_number: str) -> str:
                     e.g. "1-800-724-6837"
     """
 
-    return wordified_number
+    VANITY_PHONE_NUMBER_REGEX = '(1?)-?([0-9]{3})-?([\w-]*)$'
+
+    assert type(wordified_number) is str
+    assert(len(wordified_number) >= 2 and len(wordified_number) <= 14)
+
+    pattern = re.compile(VANITY_PHONE_NUMBER_REGEX)
+    match = pattern.match(wordified_number)
+    assert(match)
+
+    # wordified is present in in the Third Pattern Match Group, the last Seven letters
+    # For example "PAINTER" in "1-800-PAINTER"
+    wordified = match.group(3)
+    wordified = wordified.replace("-", "")
+
+    initial_digits = match.group(1) + "-" + match.group(2)
+
+    char_to_digit_mapping = get_char_to_digit_mapping()
+    trailing_digits = ""
+    for char in wordified:
+        if char.isalpha():
+            letter = char_to_digit_mapping[char]
+        else:
+            letter = char
+
+        trailing_digits = trailing_digits + letter
+
+    return initial_digits + "-" + trailing_digits[:3] + "-" + trailing_digits[3:]
 
 def all_wordifications() -> List[str]:
     """
