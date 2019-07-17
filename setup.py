@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 exec(open('vanitynumber/version.py').read())
 
@@ -14,5 +14,5 @@ setup(name='vanitynumber',
       author='Sreenivasan AC',
       author_email='sreenivasan.nitt@gmail.com',
       license='EULA',
-      packages=['vanitynumber'],
+      packages=find_packages(),
       zip_safe=False)

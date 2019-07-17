@@ -2,3 +2,5 @@ my_env/
 .cache/
 __pycache__/
 *.egg*
+build/
+*.DS_Store*
