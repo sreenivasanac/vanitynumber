@@ -3,6 +3,7 @@ from vanitynumber import wordify
 
 def test_number_to_words():
     assert wordify.number_to_words("1-800-724-6837") == "1-800-PAINTER"
+    # assert wordify.number_to_words("1-800-724-2337") == "1-800-724BEER"
 
 def test_words_to_number():
     assert wordify.words_to_number("1-800-PAINTER") == "1-800-724-6837"
