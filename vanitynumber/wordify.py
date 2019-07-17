@@ -1,4 +1,34 @@
+import os, sys
 from typing import List
+
+import pygtrie as trie
+# https://github.com/google/pygtrie
+
+MAX_WORD_LENGTH = 7
+
+is_dictionary_trie_populated = False
+
+def get_script_path():
+    return os.path.dirname(os.path.realpath(__file__))
+
+def populate_dictionary_trie():
+    global is_dictionary_trie_populated
+
+    if is_dictionary_trie_populated == True:
+        # To avoid re-populating the Trie if it has already been created in Memory
+        return
+
+    # Trie datastructure for storing dictionary words and fast retrieval
+    dictionary_trie = trie.Trie()
+
+    # https://stackoverflow.com/a/6475407/3766839
+    with open(os.path.join(get_script_path(), "dictionary.txt"), "r") as file:
+        for word in file:
+            word = str(word)
+            if len(word) <= MAX_WORD_LENGTH:
+                dictionary_trie[word] = True
+
+    is_dictionary_trie_populated = True
 
 def number_to_words(phone_number: str) -> str:
     """
@@ -12,6 +42,7 @@ def number_to_words(phone_number: str) -> str:
                          typed on a US telephone
                          e.g. "1-800-PAINTER"
     """
+    populate_dictionary_trie()
 
 
     return phone_number
@@ -29,6 +60,7 @@ def words_to_number(wordified_number: str) -> str:
                     typed on a US telephone
                     e.g. "1-800-724-6837"
     """
+    
     return wordified_number
 
 def all_wordifications() -> List[str]:
@@ -42,4 +74,8 @@ def all_wordifications() -> List[str]:
                     words in a phone number
                     e.g. ["1-800-PAINTER", ]
     """
+
+    populate_dictionary_trie()
+
+
     return []
