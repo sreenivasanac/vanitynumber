@@ -6,13 +6,13 @@ for remembering easily.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-It uses Most Popular 20,000 words in a dictionary 20k.txt taken from [google-10000-english](https://github.com/first20hours/google-10000-english)
+The VanityNumber module uses Most Popular 20,000 words in a dictionary 20k.txt taken from [google-10000-english](https://github.com/first20hours/google-10000-english)
 
-This module uses Trie Library for faster dictionary lookup
+It uses Trie Library for faster dictionary lookup
 [pygtrie](https://github.com/google/pygtrie) - Python library implementing a trie data structure
 
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Installing
 
