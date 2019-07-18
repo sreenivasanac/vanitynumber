@@ -35,10 +35,10 @@ def find_max_number_of_continous_chars_in_words(word):
     count_continous_chars = 0
     for char in word:
         if char.isalpha():
-            count_continous_chars = count_continous_chars + 1
-        else:
-            if count_continous_chars > max_continous_chars_in_word:
-                max_continous_chars_in_word = count_continous_chars
+            count_continous_chars += 1
+        if count_continous_chars > max_continous_chars_in_word:
+            max_continous_chars_in_word = count_continous_chars
+        if not char.isalpha():
             count_continous_chars = 0
     return max_continous_chars_in_word
 
@@ -102,6 +102,14 @@ def add_hyphen_notation(number):
     if number and "-" not in number:
         # list(number) does Not work for some reason!
         number_ = [digit for digit in number]
-        number_.insert(-4, "-")
+        # Add Hyphen only between TWO Digits, and Not between TWO characters
+        if number_[-3].isdigit() and number_[-4].isdigit():
+            number_.insert(-4, "-")
         number = "".join(number_)
     return number
+
+def is_valid_prefix(char_prefix, char):
+    return True
+    # global dictionary_trie
+    # return dictionary_trie.has_subtrie(char_prefix+char) or \
+    #     dictionary_trie.has_key(char_prefix+char) or \

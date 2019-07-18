@@ -4,7 +4,7 @@ Module for "wordification" of Phone Numbers to create Vanity Numbers.
 For example, the Toll Free Number "1-800-724-6837" could be wordified to "1-800-PAINTER"
 for remembering easily.
 
-## Algorithm used
+## Approach and Algorithm used 
 
 Dictionaries.txt is read  and Trie Data structure is Used for storing key value pairs for faster insertion and deletion. Python Dictionary type could also have been used, but it will Be more memory intensive to store in local memory while the program is running, and the program may crash for larger number of dictionary entries. Trie data structure can support larger dictionary sizes.
 
@@ -29,11 +29,9 @@ The VanityNumber module uses Most Popular 20,000 words in a dictionary 20k.txt t
 It uses the following Libraries for Data Structure
 [pygtrie](https://github.com/google/pygtrie) - Python library implementing a trie data structure
 
-[heapq_max](https://pypi.org/project/heapq_max/) - Python library for implementing a Max Heap Priority Queue (Note: Python's default heapq does Not intuitively support Max Heap, it supports only Min Heap)
+[heapq](https://docs.python.org/3.7/library/heapq.html) - Python library for implementing a Min Heap Priority Queue
 
-[deque](https://docs.python.org/2/library/collections.html) - Deque for implementing a Queue Data-structure or Breadth first search
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+[deque](https://docs.python.org/3.7/library/collections.html) - Deque for implementing a Queue Data-structure or Breadth first search
 
 ### Installing
 

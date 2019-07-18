@@ -1,6 +1,8 @@
 my_env/
 .cache/
+*.pyc
 __pycache__/
-*.egg*
+/*.egg-info
 build/
+/dist/
 *.DS_Store*
