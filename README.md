@@ -4,7 +4,7 @@ Module for "wordification" of Phone Numbers to create Vanity Numbers.
 For example, the Toll Free Number "1-800-724-6837" could be wordified to "1-800-PAINTER"
 for remembering easily.
 
-## Approach and Algorithm used 
+## Approach and Algorithm used
 
 Dictionaries.txt is read  and Trie Data structure is Used for storing key value pairs for faster insertion and deletion. Python Dictionary type could also have been used, but it will Be more memory intensive to store in local memory while the program is running, and the program may crash for larger number of dictionary entries. Trie data structure can support larger dictionary sizes.
 
@@ -45,7 +45,13 @@ python setup.py install
 pip install -r requirements.txt
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+```
+import vanitynumber
+vanitynumber.number_to_words("1-866-386-6481")
+vanitynumber.words_to_number("1-800-PAINTER")
+vanitynumber.all_wordifications("1-800-266-5233")
+```
+
 
 ## Running the tests
 

@@ -13,6 +13,7 @@ from . import t9_graph_node
 
 MAX_WORD_LENGTH_DICTIONARY = 7
 MAX_NUMBER_DIGITS_WORDIFY = 7
+MIN_WORD_LENGTH_DICTIONARY = 3
 
 is_dictionary_trie_populated = False
 dictionary_trie = None
@@ -28,13 +29,18 @@ def populate_dictionary_trie():
     # Trie datastructure for storing dictionary words and fast retrieval
     dictionary_trie = trie.Trie()
 
+
+    line_number = 0
     # https://stackoverflow.com/a/6475407/3766839
     with open(os.path.join(helper.get_script_path(), "dictionary.txt"), "r") as file:
         for word in file:
             word = str(word.upper()).rstrip() # stripping trailing newline characters, and making uppercase
-            if len(word) <= MAX_WORD_LENGTH_DICTIONARY:
-                dictionary_trie[word] = True
 
+            # Not including 2 In-frequent Letter words since they are pretty random (LA, FR, etc) and give bad outputs
+            if len(word) <= MAX_WORD_LENGTH_DICTIONARY and (len(word) > MIN_WORD_LENGTH_DICTIONARY or line_number < 1000):
+                dictionary_trie[word] = True
+            line_number += 1
+    # import pdb; pdb.set_trace()
     is_dictionary_trie_populated = True
     return dictionary_trie
 
@@ -61,10 +67,9 @@ def find_words_from_numbers(number: str, max_number_results_to_output):
         curr_index = curr_wordified_node.index_so_far
 
         if curr_index == number_of_digits:
-            # Push the current element into priority queue "Max Heap"
-
             max_number_of_continous_chars_in_word = helper.find_max_number_of_continous_chars_in_words(curr_wordified)
             curr_wordified_node.max_number_of_continous_chars_in_word = max_number_of_continous_chars_in_word
+            # Push the current element into priority queue
             heapq.heappush(words_from_numbers_pq, curr_wordified_node)
             # Have only N elements in Priority Queue / Heap, and Remove other elements
             while len(words_from_numbers_pq) > max_number_results_to_output:
@@ -83,9 +88,12 @@ def find_words_from_numbers(number: str, max_number_results_to_output):
              # If the current letter is a DIGIT either there should be only digits running till this point,
              # or a valid word formed till this point,
              # only then we replace the next index of a running word to a digit
-            if ((char.isdigit() and (len_char_prefix == 0 or dictionary_trie.has_key(char_prefix))) or
-                (char.isalpha() and (helper.is_valid_prefix(char_prefix, char)))):
-                # Or if the current letter is a character, then the prefix so far should be present in the Trie, only then we search one level down
+
+            if ((char.isdigit() and (len_char_prefix == 0 or helper.is_valid_word(char_prefix, dictionary_trie))) or
+                (char.isalpha() and (curr_index != number_of_digits - 1 and helper.is_valid_word_or_prefix(char_prefix+char, dictionary_trie))) or
+                (char.isalpha() and (curr_index == number_of_digits - 1 and helper.is_valid_word(char_prefix+char, dictionary_trie)))):
+                # Or if the current letter is a character, then the prefix so far should be present in the Trie,
+                # only then we search one level down
 
                 # Only if the prefix exists in the Trie are we going deeper in the Search
                 # If there does NOT exist ANY word with the prefix so far
@@ -96,7 +104,8 @@ def find_words_from_numbers(number: str, max_number_results_to_output):
                 next_number_chars_in_word = curr_number_of_chars_in_word + (1 if char.isalpha() else 0)
                 max_number_of_continous_chars_in_word = helper.find_max_number_of_continous_chars_in_words(next_wordified_number)
 
-                queue.append(t9_graph_node.T9_Graph_Node(next_wordified_number, curr_index + 1, next_number_chars_in_word, max_number_of_continous_chars_in_word))
+                queue.append(t9_graph_node.T9_Graph_Node(next_wordified_number, curr_index + 1, \
+                    next_number_chars_in_word, max_number_of_continous_chars_in_word))
 
     # Returning the maximum T9_Graph_Node having most number of contigous letters, defined as the comparator function
     if len(words_from_numbers_pq) > 0:
@@ -148,7 +157,7 @@ def number_to_words(phone_number: str) -> str:
         return None
 
     wordified_phone_number = initial_digits + "-" + wordified
-    # Output = "1-800" + "-" + "PAINTER"
+    #                           "1-800" +     "-" +   "PAINTER"
 
     return wordified_phone_number
 
@@ -165,7 +174,6 @@ def words_to_number(wordified_number: str) -> str:
                     typed on a US telephone
                     e.g. "1-800-724-6837"
     """
-
 
 
     assert type(wordified_number) is str

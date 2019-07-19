@@ -108,8 +108,22 @@ def add_hyphen_notation(number):
         number = "".join(number_)
     return number
 
-def is_valid_prefix(char_prefix, char):
-    return True
-    # global dictionary_trie
-    # return dictionary_trie.has_subtrie(char_prefix+char) or \
-    #     dictionary_trie.has_key(char_prefix+char) or \
+def is_valid_word(char_prefix, dictionary_trie):
+    if dictionary_trie.has_key(char_prefix):
+        return True
+    # Some combination of continous words should exist
+    for index, _ in enumerate(char_prefix):
+        if dictionary_trie.has_key(char_prefix[:index + 1]) and \
+            dictionary_trie.has_key(char_prefix[index + 1:]):
+            return True
+    return False
+
+def is_valid_word_or_prefix(char_prefix, dictionary_trie):
+    if dictionary_trie.has_key(char_prefix):
+        return True
+    # Some combination of continous words should exist
+    for index, _ in enumerate(char_prefix):
+        if dictionary_trie.has_key(char_prefix[:index + 1]) and \
+            dictionary_trie.has_subtrie(char_prefix[index + 1:]):
+            return True
+    return False
