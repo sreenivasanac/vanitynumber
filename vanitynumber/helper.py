@@ -2,16 +2,26 @@ import os, sys
 
 import re # regular expressions
 
+import pygtrie as trie
+# https://github.com/google/pygtrie
+
 # Helper functions for wordify.py
 PHONE_NUMBER_REGEX = {}
 PHONE_NUMBER_REGEX["US"] = '(1?)-?([0-9]{3})-?([0-9]{3})-?([0-9]{4})$'
 # Example matching number "1-800-724-6837"
 # Four control groups in the above Regex which we would be matching
 
-
 VANITY_PHONE_NUMBER_REGEX = {}
 VANITY_PHONE_NUMBER_REGEX["US"] = '(1?)-?([0-9]{3})-?([a-zA-Z0-9]{7,8})$'
 # Example matching wordified_number "1-800-PAINTER"
+
+
+is_dictionary_trie_populated = False
+dictionary_trie = None
+
+MAX_WORD_LENGTH_DICTIONARY = 7
+MAX_NUMBER_DIGITS_WORDIFY = 7
+MIN_WORD_LENGTH_DICTIONARY = 3
 
 
 def get_script_path():
@@ -19,6 +29,31 @@ def get_script_path():
 
 def replace_string_with_char_at_index(str, index, char):
     return str[:index] + char + str[index + 1:]
+
+
+def populate_dictionary_trie():
+    global is_dictionary_trie_populated
+    global dictionary_trie
+
+    if is_dictionary_trie_populated == True and dictionary_trie is not None:
+        # To avoid re-populating the Trie if it has already been created and populated inMemory
+        return dictionary_trie
+
+    # Trie datastructure for storing dictionary words and fast retrieval, and prefix matching
+    dictionary_trie = trie.Trie()
+
+    # https://stackoverflow.com/a/6475407/3766839
+    with open(os.path.join(get_script_path(), "dictionary.txt"), "r") as file:
+        for word in file:
+            word = str(word.upper()).rstrip() # stripping trailing newline characters of words from file, and making uppercase
+
+            # Not including 2 In-frequent Letter words since they are pretty random (LA, FR, etc) and give bad outputs
+            if len(word) <= MAX_WORD_LENGTH_DICTIONARY and len(word) >= MIN_WORD_LENGTH_DICTIONARY:
+                dictionary_trie[word] = True
+    # import pdb; pdb.set_trace()
+    is_dictionary_trie_populated = True
+    return dictionary_trie
+
 
 def find_char_prefix(word, index):
     # Returns the prefix length of contiguous characters ENDING AT THE GIVEN INDEX
@@ -29,18 +64,6 @@ def find_char_prefix(word, index):
         char_prefix = word[index] + char_prefix
         index -= 1
     return char_prefix
-
-def find_max_number_of_continous_chars_in_words(word):
-    max_continous_chars_in_word = 0
-    count_continous_chars = 0
-    for char in word:
-        if char.isalpha():
-            count_continous_chars += 1
-        if count_continous_chars > max_continous_chars_in_word:
-            max_continous_chars_in_word = count_continous_chars
-        if not char.isalpha():
-            count_continous_chars = 0
-    return max_continous_chars_in_word
 
 def get_digit_to_chars_list_mapping():
     # Returns mapping of digit to their corresponding List[Characters]
@@ -108,18 +131,41 @@ def add_hyphen_notation(number):
         number = "".join(number_)
     return number
 
-def is_valid_word(char_prefix, dictionary_trie):
-    if dictionary_trie.has_key(char_prefix):
-        return True
-    # Some combination of continous words should exist
-    for index, _ in enumerate(char_prefix):
-        if dictionary_trie.has_key(char_prefix[:index + 1]) and \
-            dictionary_trie.has_key(char_prefix[index + 1:]):
-            return True
-    return False
 
-def is_valid_word_or_prefix(char_prefix, dictionary_trie):
-    if dictionary_trie.has_key(char_prefix):
+def is_valid_word(char_prefix):
+    # Returns True if the given wordified word is a Valid word,
+    # either entirely or made up of substrings
+    valid_word_substrings = find_valid_word_substrings(char_prefix)
+    return len(valid_word_substrings) > 0
+
+def find_valid_word_substrings(wordified_word):
+    # Returns Valid words present in the given wordified word
+    # either entire word or 2 or more dictionary words combined
+
+    # "FUNDAY" -> ["FUN", "DAY"]
+    # "COOL" -> ["COOL"]
+    global dictionary_trie
+    populate_dictionary_trie()
+
+    if dictionary_trie.has_key(wordified_word):
+        return [wordified_word]
+    # Some combination of continous words should exist
+    for index, _ in enumerate(wordified_word):
+        if dictionary_trie.has_key(wordified_word[:index + 1]) and \
+            dictionary_trie.has_key(wordified_word[index + 1:]):
+            return [wordified_word[:index + 1], wordified_word[index + 1:]]
+
+    return []
+
+def is_valid_word_or_prefix(char_prefix):
+    # "SUNDAY" -> "TRUE"
+    # "CAPTA" -> "TRUE" (Prefix of "CAPTAIN")
+    # "FUNDA" -> "TRUE" (Prefix of "FUN" + "DAY")
+    # "FUNZL" -> "FALSE" (ZL is Not a prefix of any word)
+    global dictionary_trie
+    populate_dictionary_trie()
+
+    if dictionary_trie.has_key(char_prefix) or dictionary_trie.has_subtrie(char_prefix):
         return True
     # Some combination of continous words should exist
     for index, _ in enumerate(char_prefix):
@@ -127,3 +173,42 @@ def is_valid_word_or_prefix(char_prefix, dictionary_trie):
             dictionary_trie.has_subtrie(char_prefix[index + 1:]):
             return True
     return False
+
+def find_all_valid_word_substrings(wordified_number):
+    # Returns all dictionary words present in the given wordified string
+    # FUN9DAY => ["FUN", "DAY"]
+    # MITFUN8 => ["MIT", "FUN"]
+    # COOL123 => ["COOL"]
+
+    all_substrings = []
+    substring = ""
+    len_word = len(wordified_number)
+    for index, char in enumerate(wordified_number):
+        if char.isalpha():
+            substring += char
+            if index == len_word - 1 or not wordified_number[index + 1].isdigit():
+                all_substrings.append(substring)
+        else:
+            substring = ""
+    return all_substrings
+
+def evaluate_wordified_number(wordified_number):
+    # Returns True if the Generated wordified number - has all valid dictionary words
+
+    is_valid_wordified_phone_number = True
+    max_length_word_substring = 0
+    max_number_of_continous_chars_in_word = 0
+
+    all_valid_word_substrings = find_all_valid_word_substrings(wordified_number)
+
+    # If there are No characters or words in the number, then it is Not a valid Wordified number
+    if len(all_valid_word_substrings) == 0:
+        is_valid_wordified_phone_number = False
+    else:
+        for substring in all_valid_word_substrings:
+            max_number_of_continous_chars_in_word = max(len(substring), max_number_of_continous_chars_in_word)
+            valid_word_substrings = find_valid_word_substrings(substring)
+            for valid_substring in valid_word_substrings:
+                max_length_word_substring = max(len(valid_substring), max_length_word_substring)
+
+    return (is_valid_wordified_phone_number, max_number_of_continous_chars_in_word, max_length_word_substring)
