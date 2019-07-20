@@ -47,22 +47,28 @@ Main files are [wordify.py](https://github.com/sreenivasanac/vanitynumber/blob/m
 Steps for installing in your development environment
 
 ```
-git clone https://github.com/sreenivasanac/vanitynumber
+virtualenv -p python3 <envname>
 
-python setup.py install
-(or)
+git clone https://github.com/sreenivasanac/vanitynumber
+cd vanitynumber/
 pip install -r requirements.txt
+python setup.py install
 ```
 
 ### Usage
 ```
-import vanitynumber
+python
 
-vanitynumber.words_to_number("1-800-PAINTER")
->'1-866-COOLBEE'
+import vanitynumber
 
 vanitynumber.number_to_words("1-866-386-6481")
 >'1-866-FUNMIT1'
+
+vanitynumber.words_to_number("1-800-724-6837")
+>'1-866-COOLBEE'
+
+vanitynumber.words_to_number("866-4FUNMIT")
+>'866-438-6648'
 
 vanitynumber.all_wordifications("1-800-266-5233")
 >['1-800-BOOKBEE', '1-800-CNNJADE',...]
