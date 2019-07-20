@@ -1,62 +1,32 @@
 import os
-
-import pygtrie as trie
-# https://github.com/google/pygtrie
-
 from typing import List
-
 from collections import deque # For Queue
 import heapq # For Priority Queue - Min Heap
 
 from . import helper
 from . import t9_graph_node
 
-MAX_WORD_LENGTH_DICTIONARY = 7
-MAX_NUMBER_DIGITS_WORDIFY = 7
-MIN_WORD_LENGTH_DICTIONARY = 3
-
-is_dictionary_trie_populated = False
-dictionary_trie = None
-
-def populate_dictionary_trie():
-    global is_dictionary_trie_populated
-    global dictionary_trie
-
-    if is_dictionary_trie_populated == True and dictionary_trie is not None:
-        # To avoid re-populating the Trie if it has already been created and populated inMemory
-        return dictionary_trie
-
-    # Trie datastructure for storing dictionary words and fast retrieval
-    dictionary_trie = trie.Trie()
-
-
-    line_number = 0
-    # https://stackoverflow.com/a/6475407/3766839
-    with open(os.path.join(helper.get_script_path(), "dictionary.txt"), "r") as file:
-        for word in file:
-            word = str(word.upper()).rstrip() # stripping trailing newline characters, and making uppercase
-
-            # Not including 2 In-frequent Letter words since they are pretty random (LA, FR, etc) and give bad outputs
-            if len(word) <= MAX_WORD_LENGTH_DICTIONARY and (len(word) > MIN_WORD_LENGTH_DICTIONARY or line_number < 1000):
-                dictionary_trie[word] = True
-            line_number += 1
-    # import pdb; pdb.set_trace()
-    is_dictionary_trie_populated = True
-    return dictionary_trie
-
 
 def find_words_from_numbers(number: str, max_number_results_to_output):
-    # Input "7246874"
-    # Output wordified String "PAINTER"
-    number_of_digits = len(number)
+    """
+    Args: Phone Number and max_number_results_to_output
+    Returns: Wordified Numbers
 
-    global dictionary_trie
+    Example Input (number: "7246874", max_number_results_to_output=1)
+    Example Output wordified String "PAINTER"
+
+    Example Input (number: "2665233", max_number_results_to_output=10)
+    Example Output wordified String ["COOLBED", "BOOKBEE", "COOKADD", "BOOLADD", ......]
+
+    Returns [] or "" if No word can be formed, based on max_number_results_to_output > 1 or = 1
+    """
+    number_of_digits = len(number)
 
     digit_to_chars_list_map = helper.get_digit_to_chars_list_mapping()
 
     # Performing Breadth-first Search
     queue = deque([])
-    queue.append(t9_graph_node.T9_Graph_Node(number, 0, 0, 0))
+    queue.append(t9_graph_node.T9_Graph_Node(number, 0, 0, 0, 0))
 
     # Create an empty Max Heap
     words_from_numbers_pq = []
@@ -67,8 +37,16 @@ def find_words_from_numbers(number: str, max_number_results_to_output):
         curr_index = curr_wordified_node.index_so_far
 
         if curr_index == number_of_digits:
-            max_number_of_continous_chars_in_word = helper.find_max_number_of_continous_chars_in_words(curr_wordified)
+
+            (is_valid_wordified_phone_number, max_number_of_continous_chars_in_word, max_length_word_substring) = \
+                helper.evaluate_wordified_number(curr_wordified)
+
+            if not is_valid_wordified_phone_number:
+                continue
+
             curr_wordified_node.max_number_of_continous_chars_in_word = max_number_of_continous_chars_in_word
+            curr_wordified_node.max_length_word_substring = max_length_word_substring
+
             # Push the current element into priority queue
             heapq.heappush(words_from_numbers_pq, curr_wordified_node)
             # Have only N elements in Priority Queue / Heap, and Remove other elements
@@ -89,9 +67,9 @@ def find_words_from_numbers(number: str, max_number_results_to_output):
              # or a valid word formed till this point,
              # only then we replace the next index of a running word to a digit
 
-            if ((char.isdigit() and (len_char_prefix == 0 or helper.is_valid_word(char_prefix, dictionary_trie))) or
-                (char.isalpha() and (curr_index != number_of_digits - 1 and helper.is_valid_word_or_prefix(char_prefix+char, dictionary_trie))) or
-                (char.isalpha() and (curr_index == number_of_digits - 1 and helper.is_valid_word(char_prefix+char, dictionary_trie)))):
+            if ((char.isdigit() and (len_char_prefix == 0 or helper.is_valid_word(char_prefix))) or
+                (char.isalpha() and (curr_index != number_of_digits - 1 and helper.is_valid_word_or_prefix(char_prefix+char))) or
+                (char.isalpha() and (curr_index == number_of_digits - 1 and helper.is_valid_word(char_prefix+char)))):
                 # Or if the current letter is a character, then the prefix so far should be present in the Trie,
                 # only then we search one level down
 
@@ -102,10 +80,11 @@ def find_words_from_numbers(number: str, max_number_results_to_output):
                 next_wordified_number = helper.replace_string_with_char_at_index(curr_wordified, curr_index, char)
                 # print(next_wordified_number)
                 next_number_chars_in_word = curr_number_of_chars_in_word + (1 if char.isalpha() else 0)
-                max_number_of_continous_chars_in_word = helper.find_max_number_of_continous_chars_in_words(next_wordified_number)
+                (is_valid_wordified_phone_number, max_number_of_continous_chars_in_word, max_length_word_substring) = \
+                    helper.evaluate_wordified_number(next_wordified_number)
 
                 queue.append(t9_graph_node.T9_Graph_Node(next_wordified_number, curr_index + 1, \
-                    next_number_chars_in_word, max_number_of_continous_chars_in_word))
+                    next_number_chars_in_word, max_number_of_continous_chars_in_word, max_length_word_substring))
 
     # Returning the maximum T9_Graph_Node having most number of contigous letters, defined as the comparator function
     if len(words_from_numbers_pq) > 0:
@@ -121,7 +100,10 @@ def find_words_from_numbers(number: str, max_number_results_to_output):
         else:
             return words_from_numbers_result[:max_number_results_to_output]
     else:
-        return ""
+        if max_number_results_to_output == 1:
+            return ""
+        else:
+            return []
 
 
 def number_to_words(phone_number: str) -> str:
@@ -141,14 +123,15 @@ def number_to_words(phone_number: str) -> str:
                          typed on a US telephone
                          e.g. "1-800-PAINTER"
     """
-    global dictionary_trie
-    populate_dictionary_trie()
+    helper.populate_dictionary_trie()
 
     is_valid_phone_number = helper.validate_phone_number_basic(phone_number)
     match = helper.validate_phone_number_regex(phone_number, "US")
 
     # Take only the last MAX_NUMBER_DIGITS_WORDIFY digits
-    initial_digits = match.group(1) + "-" + match.group(2)
+    initial_digits = ""
+    if match.group(1): initial_digits += match.group(1) + "-"
+    initial_digits += match.group(2)
     trailing_digits = match.group(3) + match.group(4)
 
     wordified = find_words_from_numbers(trailing_digits, 1)
@@ -186,7 +169,9 @@ def words_to_number(wordified_number: str) -> str:
     wordified = match.group(3)
     wordified = wordified.replace("-", "")
 
-    initial_digits = match.group(1) + "-" + match.group(2)
+    initial_digits = ""
+    if match.group(1): initial_digits += match.group(1) + "-"
+    initial_digits += match.group(2)
 
     char_to_digit_mapping = helper.get_char_to_digit_mapping()
     trailing_digits = ""
@@ -198,6 +183,7 @@ def words_to_number(wordified_number: str) -> str:
 
         trailing_digits = trailing_digits + letter
 
+    #       "1-800"         "-" +       "123"         + "-" +    "1234"
     return initial_digits + "-" + trailing_digits[:3] + "-" + trailing_digits[3:]
 
 def all_wordifications(phone_number: str) -> List[str]:
@@ -211,8 +197,7 @@ def all_wordifications(phone_number: str) -> List[str]:
                     words in a phone number
                     e.g. ["1-800-PAINTER", ...]
     """
-    global dictionary_trie
-    populate_dictionary_trie()
+    helper.populate_dictionary_trie()
 
     is_valid_phone_number = helper.validate_phone_number_basic(phone_number)
     match = helper.validate_phone_number_regex(phone_number, "US")
