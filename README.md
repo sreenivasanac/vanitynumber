@@ -6,21 +6,28 @@ for remembering easily.
 
 ## Approach and Algorithm used
 
-Dictionaries.txt is read  and Trie Data structure is Used for storing key value pairs for faster insertion and deletion. Python Dictionary type could also have been used, but it will Be more memory intensive to store in local memory while the program is running, and the program may crash for larger number of dictionary entries. Trie data structure can support larger dictionary sizes.
+Main files are [wordify.py](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/wordify.py) and [helper.py](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/helper.py)
 
-The Trie data is stored in a global variable, though using global variables are Not recommended in many cases, for persisting the file read, and to avoid re-computation (dictionary file read and Trie populate) between multiple functions, this approach is used. Will save considerable time if dictionary file is larger.
+The problem of search number of combinations of T9 predictive ways of generating Wordified numbers is approached by considering it as a graph problem, with Nodes representing possible combinations of characters for each digit, and Breadth first search is performed from the first digit to the end while checking for prefixes. Comparator function has been defined for `T9_Graph_Node` for performing comparative operations between graph Nodes like sorting, min, max, etc.
 
+Since frequently while doing graph search, we need to check for prefix matching, and search for word if it is present in Dictionary, Trie Data structure is Used in this program for storing key value pairs for faster insertion and deletion. Dictionaries.txt is read and Trie Data Structure has been created and populated. Python Dictionary type could also have been used for this purpose, but it will Be more memory intensive to store in local memory while the program is running, and the program may crash for larger number of dictionary entries. Trie data structure can support larger dictionary sizes.
 
-number_to_words -> Regex is used to compare phone numbers and fetch groups of area codes. Though for some scenarios it is recommended to avoid Regex, this usecase of fetching US phone number area codes looked more suitable for its use. Since US phone numbers can come in slightly different formats, to avoid writing complex and repeating logic for fetching groups of numbers in the US phone number, this approach is used.
-The problem of search number of combinations of T9 predictive ways of generating Wordified numbers is approached by considering it as a graph problem, with Nodes representing possible combinations of characters for each digit, and Breadth first search is performed from the first digit to the end while checking for prefixes. Comparator function has been defined for T9_Graph_Node for performing comparative operations between graph Nodes like sorting, min, max, etc.
+`Note`: The Trie data is being stored in a global variable, though using global variables are Not recommended in many cases, for persisting the file read, and to avoid re-computation (dictionary file read and Trie populate) between multiple functions, this approach is used. Will save considerable time if dictionary file is larger.
+
+[`number_to_words`](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/wordify.py#L109) -> Regex is used to compare phone numbers and fetch groups of area codes. Though for some scenarios it is recommended to avoid Regex, this usecase of fetching US phone number area codes looked more suitable for its use. Since US phone numbers can come in slightly different formats, to avoid writing complex and repeating logic for fetching groups of numbers in the US phone number, this approach is used.
+
 The List of possible outputs are stored in Max Heap / Priority Queue for faster insertion and deletion queries and retrieving best N words, which is defined by comparator function (most number of English characters in wordified_number)
 
-words_to_number -> After sanity validation, converts each character to its corresponding T9 digit based on defined hash map.
+[`words_to_number`](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/wordify.py#L147) -> After sanity validation, converts each character to its corresponding T9 digit based on defined hash map.
+`
+[`all_wordifications`](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/wordify.py#L189) -> Same as number_to_words, returns more number of results, custom defined
 
-all_wordifications -> Same as number_to_words, returns more number of results, custom defined
-
-There are many words in the dictionary which are NOT Useful (yo, ey, si) and Needs data cleaning.
+Assumptions Made in this program:
+1. There are many words in the dictionary which are NOT Useful (yo, ey, si, fr) and Needs data cleaning.
 I've attempted to do data cleaning in data_cleaning.py but saved it for a later day.
+Hence the program has IGNORED ALL TWO LETTER WORDS
+
+2. The Approach currently considers only maximum of combination of TWO WORDS together, though it can be extended for more words.
 
 ## Getting Started
 
@@ -32,6 +39,8 @@ It uses the following Libraries for Data Structure
 [heapq](https://docs.python.org/3.7/library/heapq.html) - Python library for implementing a Min Heap Priority Queue
 
 [deque](https://docs.python.org/3.7/library/collections.html) - Deque for implementing a Queue Data-structure or Breadth first search
+
+Main files are [wordify.py](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/wordify.py) and [helper.py](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/helper.py)
 
 ### Installing
 
@@ -45,13 +54,19 @@ python setup.py install
 pip install -r requirements.txt
 ```
 
+### Usage
 ```
 import vanitynumber
-vanitynumber.number_to_words("1-866-386-6481")
-vanitynumber.words_to_number("1-800-PAINTER")
-vanitynumber.all_wordifications("1-800-266-5233")
-```
 
+vanitynumber.words_to_number("1-800-PAINTER")
+>'1-866-COOLBEE'
+
+vanitynumber.number_to_words("1-866-386-6481")
+>'1-866-FUNMIT1'
+
+vanitynumber.all_wordifications("1-800-266-5233")
+>['1-800-BOOKBEE', '1-800-CNNJADE',...]
+```
 
 ## Running the tests
 
@@ -61,7 +76,7 @@ pytest
 
 ## Authors
 
-* **Sreenivasan AC**
+* [**Sreenivasan AC**](https://www.linkedin.com/in/sreenivasan-ac/)
 
 
 ## License
