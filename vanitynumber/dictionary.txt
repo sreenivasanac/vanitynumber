@@ -7773,7 +7773,6 @@ gui
 porter
 gras
 jungle
-ver
 rn
 responded
 rim

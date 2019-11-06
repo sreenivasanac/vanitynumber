@@ -18,12 +18,11 @@ def test_validate_phone_number_regex():
     except AssertionError:
         pytest.fail("AssertionError..Regex Not Matched")
 
-    with pytest.raises(AssertionError):
-        badinputs = ["45-23-2344-12", "12345"]
-        for badinput in badinputs:
-            helper.validate_phone_number_regex(badinput, "US")
-        pytest.fail("Expected AssertionError")
-    # assert match.match("4046639270") == True
+
+    badinputs = ["45-23-2344-12", "12345"]
+    for badinput in badinputs:
+        match = helper.validate_phone_number_regex(badinput, "US")
+        assert match is None
 
 
 def test_is_valid_word_or_prefix():
@@ -43,16 +42,14 @@ def test_find_all_valid_word_substrings():
     assert "FUN" in valid_word_substrings
 
 
-def test_validate_phone_number_regex():
+def test_validate_vanity_number_regex():
     goodinputs = ["1-800-PAINTER", "1-866-FUNMIT1"]
-    try:
-        for goodinput in goodinputs:
-            helper.validate_wordified_number_regex(goodinput, "US")
-    except AssertionError:
-        pytest.fail("AssertionError..Regex Not Matched")
+
+    for goodinput in goodinputs:
+        match = helper.validate_wordified_number_regex(goodinput, "US")
+    assert match is not None
 
     badinputs = ["123"]
-    with pytest.raises(AssertionError):
-        for badinput in badinputs:
-            helper.validate_wordified_number_regex(badinput, "US")
-        pytest.fail("Expected AssertionError")
+    for badinput in badinputs:
+        match = helper.validate_wordified_number_regex(badinput, "US")
+        assert match is None

@@ -5,6 +5,8 @@ import re # regular expressions
 import pygtrie as trie
 # https://github.com/google/pygtrie
 
+import yaml
+
 # Helper functions for wordify.py
 PHONE_NUMBER_REGEX = {}
 PHONE_NUMBER_REGEX["US"] = '(1?)-?([0-9]{3})-?([0-9]{3})-?([0-9]{4})$'
@@ -17,30 +19,32 @@ VANITY_PHONE_NUMBER_REGEX["US"] = '(1?)-?([0-9]{3})-?([a-zA-Z0-9]{7,8})$'
 
 
 is_dictionary_trie_populated = False
-dictionary_trie = None
+DICTIONARY_TRIE = None
 
 MAX_WORD_LENGTH_DICTIONARY = 7
 MAX_NUMBER_DIGITS_WORDIFY = 7
 MIN_WORD_LENGTH_DICTIONARY = 3
 
-
 def get_script_path():
     return os.path.dirname(os.path.realpath(__file__))
+
+defaults = None
+with open(os.path.join(get_script_path(), "defaults.yml"), 'r') as ymlfile:
+    defaults = yaml.safe_load(ymlfile)
 
 def replace_string_with_char_at_index(str, index, char):
     return str[:index] + char + str[index + 1:]
 
-
 def populate_dictionary_trie():
     global is_dictionary_trie_populated
-    global dictionary_trie
+    global DICTIONARY_TRIE
 
-    if is_dictionary_trie_populated == True and dictionary_trie is not None:
+    if is_dictionary_trie_populated == True and DICTIONARY_TRIE is not None:
         # To avoid re-populating the Trie if it has already been created and populated inMemory
-        return dictionary_trie
+        return DICTIONARY_TRIE
 
     # Trie datastructure for storing dictionary words and fast retrieval, and prefix matching
-    dictionary_trie = trie.Trie()
+    DICTIONARY_TRIE = trie.Trie()
 
     # https://stackoverflow.com/a/6475407/3766839
     with open(os.path.join(get_script_path(), "dictionary.txt"), "r") as file:
@@ -49,10 +53,10 @@ def populate_dictionary_trie():
 
             # Not including 2 In-frequent Letter words since they are pretty random (LA, FR, etc) and give bad outputs
             if len(word) <= MAX_WORD_LENGTH_DICTIONARY and len(word) >= MIN_WORD_LENGTH_DICTIONARY:
-                dictionary_trie[word] = True
+                DICTIONARY_TRIE[word] = True
     # import pdb; pdb.set_trace()
     is_dictionary_trie_populated = True
-    return dictionary_trie
+    return DICTIONARY_TRIE
 
 
 def find_char_prefix(word, index):
@@ -86,18 +90,22 @@ def get_digit_to_chars_list_mapping():
 
     return digit_to_chars_list_map
 
-def validate_phone_number_regex(phone_number, country_code):
+def validate_phone_number_regex(phone_number, country_code=defaults['country_code']):
     global PHONE_NUMBER_REGEX
     pattern = re.compile(PHONE_NUMBER_REGEX[country_code])
     match = pattern.match(phone_number)
-    assert(match)
+    # assert(match)
     return match
 
-def validate_wordified_number_regex(wordified_number, country_code):
+def is_valid_phone_number(phone_number, country_code=defaults['country_code']):
+    match = validate_phone_number_regex(phone_number, country_code)
+    return bool(match)
+
+def validate_wordified_number_regex(wordified_number, country_code=defaults['country_code']):
     global VANITY_PHONE_NUMBER_REGEX
     pattern = re.compile(VANITY_PHONE_NUMBER_REGEX[country_code])
     match = pattern.match(wordified_number)
-    assert(match)
+    # assert(match)
     return match
 
 def validate_phone_number_basic(phone_number):
@@ -144,15 +152,15 @@ def find_valid_word_substrings(wordified_word):
 
     # "FUNDAY" -> ["FUN", "DAY"]
     # "COOL" -> ["COOL"]
-    global dictionary_trie
+    global DICTIONARY_TRIE
     populate_dictionary_trie()
 
-    if dictionary_trie.has_key(wordified_word):
+    if DICTIONARY_TRIE.has_key(wordified_word):
         return [wordified_word]
     # Some combination of continous words should exist
     for index, _ in enumerate(wordified_word):
-        if dictionary_trie.has_key(wordified_word[:index + 1]) and \
-            dictionary_trie.has_key(wordified_word[index + 1:]):
+        if DICTIONARY_TRIE.has_key(wordified_word[:index + 1]) and \
+            DICTIONARY_TRIE.has_key(wordified_word[index + 1:]):
             return [wordified_word[:index + 1], wordified_word[index + 1:]]
 
     return []
@@ -162,15 +170,15 @@ def is_valid_word_or_prefix(char_prefix):
     # "CAPTA" -> "TRUE" (Prefix of "CAPTAIN")
     # "FUNDA" -> "TRUE" (Prefix of "FUN" + "DAY")
     # "FUNZL" -> "FALSE" (ZL is Not a prefix of any word)
-    global dictionary_trie
+    global DICTIONARY_TRIE
     populate_dictionary_trie()
 
-    if dictionary_trie.has_key(char_prefix) or dictionary_trie.has_subtrie(char_prefix):
+    if DICTIONARY_TRIE.has_key(char_prefix) or DICTIONARY_TRIE.has_subtrie(char_prefix):
         return True
     # Some combination of continous words should exist
     for index, _ in enumerate(char_prefix):
-        if dictionary_trie.has_key(char_prefix[:index + 1]) and \
-            dictionary_trie.has_subtrie(char_prefix[index + 1:]):
+        if DICTIONARY_TRIE.has_key(char_prefix[:index + 1]) and \
+            DICTIONARY_TRIE.has_subtrie(char_prefix[index + 1:]):
             return True
     return False
 
