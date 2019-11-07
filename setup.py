@@ -17,11 +17,12 @@ setup(name='vanitynumber',
           'pygtrie',
           'pytest'
       ],
-      download_url = 'https://github.com/sreenivasanac/vanitynumber/archive/v_0.2.tar.gz',
+      download_url = 'https://github.com/sreenivasanac/vanitynumber/archive/v_0.4.tar.gz',
       author='Sreenivasan AC',
       author_email='sreenivasan.nitt@gmail.com',
       license='EULA',
       packages=find_packages(),
+      include_package_data=True,
       classifiers=[
         'Development Status :: 3 - Alpha',      # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
         'Intended Audience :: Developers',      # Define that your audience are developers
