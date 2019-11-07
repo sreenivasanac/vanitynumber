@@ -28,7 +28,7 @@ Number Validation: Since US phone numbers can come in slightly different formats
 ##### Performance Optimization
 - Checking for valid dictionary words Using Trie Data structure.
 - Trie data is populated and stored as a `Global Constant`. This avoids re-computation (dictionary file read and Trie populate) between multiple functions, and will save considerable time if dictionary file is larger.
-
+- When doing Graph search, if valid prefix of a dictionary word is Not formed, the graph search is pre-maturely discontinued at that stage.
 
 ##### Assumptions
 Assumptions Made in this program

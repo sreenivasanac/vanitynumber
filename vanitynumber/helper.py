@@ -33,6 +33,7 @@ with open(os.path.join(get_script_path(), "defaults.yml"), 'r') as ymlfile:
     defaults = yaml.safe_load(ymlfile)
 
 def replace_string_with_char_at_index(str, index, char):
+    # Strings are immutable in python, hence this function
     return str[:index] + char + str[index + 1:]
 
 def populate_dictionary_trie():
@@ -54,7 +55,7 @@ def populate_dictionary_trie():
             # Not including 2 In-frequent Letter words since they are pretty random (LA, FR, etc) and give bad outputs
             if len(word) <= MAX_WORD_LENGTH_DICTIONARY and len(word) >= MIN_WORD_LENGTH_DICTIONARY:
                 DICTIONARY_TRIE[word] = True
-    # import pdb; pdb.set_trace()
+
     is_dictionary_trie_populated = True
     return DICTIONARY_TRIE
 
@@ -90,27 +91,28 @@ def get_digit_to_chars_list_mapping():
 
     return digit_to_chars_list_map
 
-def validate_phone_number_regex(phone_number, country_code=defaults['country_code']):
-    global PHONE_NUMBER_REGEX
+def get_phone_number_regex_groups(phone_number, country_code=defaults['country_code']):
     pattern = re.compile(PHONE_NUMBER_REGEX[country_code])
     match = pattern.match(phone_number)
-    # assert(match)
     return match
 
 def is_valid_phone_number(phone_number, country_code=defaults['country_code']):
-    match = validate_phone_number_regex(phone_number, country_code)
+    match = get_phone_number_regex_groups(phone_number, country_code)
     return bool(match)
 
-def validate_wordified_number_regex(wordified_number, country_code=defaults['country_code']):
-    global VANITY_PHONE_NUMBER_REGEX
+def get_vanity_number_regex_groups(wordified_number, country_code=defaults['country_code']):
     pattern = re.compile(VANITY_PHONE_NUMBER_REGEX[country_code])
     match = pattern.match(wordified_number)
-    # assert(match)
     return match
+
+def is_valid_vanity_number(phone_number, country_code=defaults['country_code']):
+    match = get_vanity_number_regex_groups(phone_number, country_code)
+    return bool(match)
 
 def validate_phone_number_basic(phone_number):
     assert type(phone_number) is str
-    assert(len(phone_number) >= 2 and len(phone_number) <= 14)
+    if not (len(phone_number) >= defaults['min_phone_length'] and len(phone_number) <= defaults['max_phone_length']):
+        return False
     return True
 
 def get_char_to_digit_mapping():

@@ -1,1 +1,3 @@
 country_code: "US"
+min_phone_length: 2
+max_phone_length: 14

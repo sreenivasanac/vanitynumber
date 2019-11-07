@@ -1,4 +1,3 @@
-
 from vanitynumber import wordify
 
 # {'A': '2', 'B': '2', 'C': '2', 'D': '3', 'E': '3', 'F': '3', 'G': '4',

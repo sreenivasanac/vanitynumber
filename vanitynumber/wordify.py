@@ -6,7 +6,6 @@ import heapq # For Priority Queue - Min Heap
 from . import helper
 from . import t9_graph_node
 
-
 def find_words_from_numbers(number: str, max_number_results_to_output):
     """
     Args: Phone Number and max_number_results_to_output
@@ -30,12 +29,14 @@ def find_words_from_numbers(number: str, max_number_results_to_output):
 
     # Create an empty Max Heap
     words_from_numbers_pq = []
+    # https://docs.python.org/2/library/heapq.html
 
     while(queue):
         curr_wordified_node = queue.popleft()
         curr_wordified = curr_wordified_node.wordified_so_far
         curr_index = curr_wordified_node.index_so_far
 
+        # If the graph search reached the end of the number, then validate and push to results heap
         if curr_index == number_of_digits:
 
             (is_valid_wordified_phone_number, max_number_of_continous_chars_in_word, max_length_word_substring) = \
@@ -49,7 +50,7 @@ def find_words_from_numbers(number: str, max_number_results_to_output):
 
             # Push the current element into priority queue
             heapq.heappush(words_from_numbers_pq, curr_wordified_node)
-            # Have only N elements in Priority Queue / Heap, and Remove other elements
+            # Have only total N elements in Priority Queue / Heap, and Remove other elements
             while len(words_from_numbers_pq) > max_number_results_to_output:
                 heapq.heappop(words_from_numbers_pq)
             continue
@@ -95,15 +96,9 @@ def find_words_from_numbers(number: str, max_number_results_to_output):
         for wordified in nlargest_:
             words_from_numbers_result.append(wordified.wordified_so_far)
 
-        if max_number_results_to_output == 1:
-            return words_from_numbers_result[0]
-        else:
-            return words_from_numbers_result[:max_number_results_to_output]
+        return words_from_numbers_result[:max_number_results_to_output]
     else:
-        if max_number_results_to_output == 1:
-            return ""
-        else:
-            return []
+        return []
 
 
 def number_to_words(phone_number: str) -> str:
@@ -125,8 +120,8 @@ def number_to_words(phone_number: str) -> str:
     """
     helper.populate_dictionary_trie()
 
-    is_valid_phone_number = helper.validate_phone_number_basic(phone_number)
-    match = helper.validate_phone_number_regex(phone_number, "US")
+    is_valid_phone_number = helper.is_valid_phone_number(phone_number)
+    match = helper.get_phone_number_regex_groups(phone_number, "US")
 
     # Take only the last MAX_NUMBER_DIGITS_WORDIFY digits
     initial_digits = ""
@@ -137,7 +132,10 @@ def number_to_words(phone_number: str) -> str:
     wordified = find_words_from_numbers(trailing_digits, 1)
 
     if not wordified:
-        return None
+        return ""
+
+    # Select the first element of the returned results array as the most suitable element
+    wordified = wordified[0]
 
     wordified_phone_number = initial_digits + "-" + wordified
     #                           "1-800" +     "-" +   "PAINTER"
@@ -162,7 +160,7 @@ def words_to_number(wordified_number: str) -> str:
     assert type(wordified_number) is str
     assert(len(wordified_number) >= 2 and len(wordified_number) <= 14)
 
-    match = helper.validate_wordified_number_regex(wordified_number, "US")
+    match = helper.get_vanity_number_regex_groups(wordified_number, "US")
 
     # wordified is present in in the Third Pattern Match Group, the last Seven letters
     # For example "PAINTER" in "1-800-PAINTER"
@@ -186,6 +184,7 @@ def words_to_number(wordified_number: str) -> str:
     #       "1-800"         "-" +       "123"         + "-" +    "1234"
     return initial_digits + "-" + trailing_digits[:3] + "-" + trailing_digits[3:]
 
+
 def all_wordifications(phone_number: str) -> List[str]:
     """
     Args:
@@ -199,8 +198,10 @@ def all_wordifications(phone_number: str) -> List[str]:
     """
     helper.populate_dictionary_trie()
 
-    is_valid_phone_number = helper.validate_phone_number_basic(phone_number)
-    match = helper.validate_phone_number_regex(phone_number, "US")
+    if not helper.is_valid_phone_number(phone_number, "US"):
+        raise ValueError
+
+    match = helper.get_phone_number_regex_groups(phone_number, "US")
 
     # Take only the last MAX_NUMBER_DIGITS_WORDIFY digits
     initial_digits = match.group(1) + "-" + match.group(2)
