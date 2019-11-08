@@ -9,6 +9,19 @@ This is a Python Module implementing functionalities related to [Vanity Toll-fre
 See the Python Module published in PyPi
 [https://pypi.org/project/vanitynumber/](https://pypi.org/project/vanitynumber/)
 
+React Front-end Demo Application demonstrating these functionalities:
+[https://vanitynumber-frontend.herokuapp.com/](https://vanitynumber-frontend.herokuapp.com/)
+
+Github Repo for the React Front-end:
+[https://github.com/sreenivasanac/vanitynumber-frontend](https://github.com/sreenivasanac/vanitynumber-frontend)
+
+REST API Backend demo (using Flask) which USES THIS Python Module functionalities: Validation, Generation, etc:
+[https://github.com/sreenivasanac/vanitynumber-frontend](https://github.com/sreenivasanac/vanitynumber-frontend)
+
+Github Repo for the Backend
+[https://github.com/sreenivasanac/vanitynumber-backend-api](https://github.com/sreenivasanac/vanitynumber-backend-api)
+
+
 ##  Approach and Algorithm used
 
 Main files are [wordify.py](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/wordify.py) and [helper.py](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/helper.py)
