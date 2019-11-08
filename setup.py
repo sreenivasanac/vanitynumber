@@ -17,7 +17,7 @@ setup(name='vanitynumber',
           'pygtrie',
           'pytest'
       ],
-      download_url = 'https://github.com/sreenivasanac/vanitynumber/archive/v_0.4.tar.gz',
+      download_url = 'https://github.com/sreenivasanac/vanitynumber/archive/v_0.5.tar.gz',
       author='Sreenivasan AC',
       author_email='sreenivasan.nitt@gmail.com',
       license='EULA',

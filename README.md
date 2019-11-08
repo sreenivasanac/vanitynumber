@@ -6,6 +6,9 @@ This is a Python Module implementing functionalities related to [Vanity Toll-fre
 - `Word to number mapping`: The telephone number corresponding to the wordified number '1-866-FUNMIT1' is '1-866-386-6481'
 - `Phone Number validation`: '404739-92' and '6504939270' are NOT valid US Phone Numbers.
 
+See the Python Module published in PyPi
+[https://pypi.org/project/vanitynumber/](https://pypi.org/project/vanitynumber/)
+
 ##  Approach and Algorithm used
 
 Main files are [wordify.py](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/wordify.py) and [helper.py](https://github.com/sreenivasanac/vanitynumber/blob/master/vanitynumber/helper.py)
@@ -53,7 +56,14 @@ Main files are [wordify.py](https://github.com/sreenivasanac/vanitynumber/blob/m
 
 ## Getting Started
 
-### Installing
+### Users Installation (Alpha version)
+See the Alpha Release Python Module published in PyPi
+[https://pypi.org/project/vanitynumber/](https://pypi.org/project/vanitynumber/)
+```
+pip install vanitynumber
+```
+
+### Developers Installation
 
 Instructions for installing in your development environment
 

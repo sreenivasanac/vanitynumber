@@ -185,7 +185,7 @@ def words_to_number(wordified_number: str) -> str:
     return initial_digits + "-" + trailing_digits[:3] + "-" + trailing_digits[3:]
 
 
-def all_wordifications(phone_number: str) -> List[str]:
+def all_wordifications(phone_number: str, max_number_results_to_output=20) -> List[str]:
     """
     Args:
     - phone_number: a string representing a US phone number
@@ -208,7 +208,7 @@ def all_wordifications(phone_number: str) -> List[str]:
     trailing_digits = match.group(3) + match.group(4)
 
     wordifications = []
-    wordifications = find_words_from_numbers(trailing_digits, max_number_results_to_output=100)
+    wordifications = find_words_from_numbers(trailing_digits, max_number_results_to_output)
 
     for i, _ in enumerate(wordifications):
         wordifications[i] = helper.add_hyphen_notation(wordifications[i])

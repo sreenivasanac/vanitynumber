@@ -9,12 +9,12 @@ import yaml
 
 # Helper functions for wordify.py
 PHONE_NUMBER_REGEX = {}
-PHONE_NUMBER_REGEX["US"] = '(1?)-?([0-9]{3})-?([0-9]{3})-?([0-9]{4})$'
+PHONE_NUMBER_REGEX["US"] = '(\+?1?)-?([0-9]{3})-?([0-9]{3})-?([0-9]{4})$'
 # Example matching number "1-800-724-6837"
 # Four control groups in the above Regex which we would be matching
 
 VANITY_PHONE_NUMBER_REGEX = {}
-VANITY_PHONE_NUMBER_REGEX["US"] = '(1?)-?([0-9]{3})-?([a-zA-Z0-9]{7,8})$'
+VANITY_PHONE_NUMBER_REGEX["US"] = '(\+?1?)-?([0-9]{3})-?([a-zA-Z0-9]{7,8})$'
 # Example matching wordified_number "1-800-PAINTER"
 
 
